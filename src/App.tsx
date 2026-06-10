@@ -183,10 +183,6 @@ export default function App() {
     currentScale: number;
     glbModel: any;
     glbVertices: Float32Array | null;
-    ambientLight: any;
-    dirLight1: any;
-    dirLight2: any;
-    pointLight: any;
   } | null>(null);
 
   // MediaPipe Ref
@@ -851,11 +847,7 @@ export default function App() {
       targetScale: 1.0,
       currentScale: 1.0,
       glbModel: null,
-      glbVertices: null,
-      ambientLight,
-      dirLight1,
-      dirLight2,
-      pointLight
+      glbVertices: null
     };
 
     // 5. High intensity Raycaster Interaction click
@@ -1055,21 +1047,6 @@ export default function App() {
           t.isTransitioning = false;
         }
         t.transitionProgressUniform.value = progress;
-      }
-
-      // Dynamic brightness adjustment based on view state
-      if (activeView === "detail") {
-        // Significantly reduce brightness for background coins in detail view
-        t.ambientLight.intensity = 0.08;
-        t.dirLight1.intensity = 0.3;
-        t.dirLight2.intensity = 0.15;
-        t.pointLight.intensity = 0.5;
-      } else {
-        // Restore original brightness in orbit view
-        t.ambientLight.intensity = 0.45;
-        t.dirLight1.intensity = 2.2;
-        t.dirLight2.intensity = 1.0;
-        t.pointLight.intensity = 3.2;
       }
 
       // Smooth filters for palm gestures with lag damping
