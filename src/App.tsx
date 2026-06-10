@@ -1370,49 +1370,35 @@ export default function App() {
           }`}
         >
           {/* Left Panel: Hand gestural cockpit */}
-          <div className={`w-80 bg-black/60 backdrop-blur-xl border border-[#00f2fe]/20 rounded-2xl p-5 flex flex-col justify-between pointer-events-auto shadow-2xl transition-all duration-700 ${gestureOpen ? "opacity-100 translate-x-0" : "opacity-60 -translate-x-5"}`}>
+          <div className={`w-80 bg-black/60 backdrop-blur-xl border border-[#00f2fe]/20 rounded-2xl p-5 flex flex-col justify-between pointer-events-auto shadow-2xl transition-all duration-700 ${gestureOpen ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-16"}`}>
             <div className="flex flex-col h-full overflow-hidden justify-between space-y-4">
               <div>
-                <h2 className="text-xs font-bold text-[#d4af37] tracking-widest border-b border-white/10 pb-2 mb-3 flex items-center">
-                  <i className="fa-solid fa-hands-holding mr-1 text-[#d4af37]"></i>
-                  灵境手控调合
+                <h2 className="text-sm font-bold text-[#d4af37] tracking-[0.24em] border-b border-white/10 pb-2 mb-3 flex items-center">
+                  <i className="fa-solid fa-hand-paper mr-2 text-[#d4af37]"></i>
+                  手势简示
                 </h2>
-                <p className="text-xs text-slate-300 leading-relaxed font-medium mb-4 text-justify">
-                  简化手势：横移旋转、捏合缩放、OK保持1.5秒切换。张开手掌展开信息，捏合收起面板。
+                <p className="text-sm text-slate-200 leading-relaxed font-medium mb-4 text-justify">
+                  横移旋转、捏合缩放、OK停 1.5s 切换。张开展开信息框，捏合收起隐藏。
                 </p>
-                <img
-                  src="/大吉羊花钱2.png"
-                  alt="大吉羊花钱"
-                  className="w-full h-auto max-h-36 rounded-lg border border-white/10 shadow-lg object-cover"
-                />
               </div>
 
-              {/* Hand controls metrics guide */}
-              <div className="bg-black/40 border border-slate-800 rounded-xl p-3.5 space-y-3 text-[11px] text-slate-400">
-                <div className="flex justify-between items-center border-b border-white/5 pb-2">
-                  <span className="flex items-center">
-                    <i className="fa-solid fa-arrows-left-right text-[#00f2fe] w-5"></i>
-                    左右摆动
-                  </span>
-                  <span className="text-slate-200">旋转模型</span>
+              <div className="bg-black/40 border border-slate-800 rounded-2xl p-4 space-y-3 text-sm text-slate-300">
+                <div className="flex items-center gap-3">
+                  <i className="fa-solid fa-arrows-left-right text-[#00f2fe] w-5"></i>
+                  <span>左右滑动：旋转当前币体</span>
                 </div>
-                <div className="flex justify-between items-center border-b border-white/5 pb-2">
-                  <span className="flex items-center">
-                    <i className="fa-solid fa-compress-arrows-alt text-[#00f2fe] w-5"></i>
-                    捏合缩放
-                  </span>
-                  <span className="text-slate-200">调整视距</span>
+                <div className="flex items-center gap-3">
+                  <i className="fa-solid fa-compress-arrows-alt text-[#00f2fe] w-5"></i>
+                  <span>捏合手势：放大 / 缩小视图</span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="flex items-center">
-                    <i className="fa-solid fa-circle-check text-[#d4af37] w-5"></i>
-                    OK 保持 1.5s
-                  </span>
-                  <span className="text-[#d4af37] font-bold">切换下一枚</span>
+                <div className="flex items-center gap-3">
+                  <i className="fa-solid fa-circle-check text-[#d4af37] w-5"></i>
+                  <span>OK 停留 1.5 秒：切换到下一枚</span>
                 </div>
               </div>
-              <div className="text-[10px] text-slate-400 leading-snug px-1 pt-2">
-                当前手势：{gestureOpen ? "已展开详情，捏合收起" : "捏合展开详情"}
+
+              <div className="text-sm text-slate-300 leading-relaxed px-1 pt-2">
+                当前状态：{gestureOpen ? "详情已展开" : "详情已隐藏"}
               </div>
 
               {/* Bloom adjuster slider */}
@@ -1433,58 +1419,58 @@ export default function App() {
           </div>
 
           {/* Right Panel: AI smart narration & historical specification ledger */}
-          <div className={`w-96 bg-black/60 backdrop-blur-xl border border-[#00f2fe]/20 rounded-2xl p-5 flex flex-col justify-between pointer-events-auto overflow-hidden shadow-2xl transition-all duration-700 ${gestureOpen ? "opacity-100 translate-x-0" : "opacity-60 translate-x-4"}`}>
+          <div className={`w-96 bg-black/60 backdrop-blur-xl border border-[#00f2fe]/20 rounded-2xl p-5 flex flex-col justify-between pointer-events-auto overflow-hidden shadow-2xl transition-all duration-700 ${gestureOpen ? "opacity-100 translate-x-0" : "opacity-0 translate-x-16"}`}>
             <div className="space-y-4 h-full flex flex-col justify-between">
               <div>
                 <div className="flex justify-between items-center border-b border-white/10 pb-2">
-                  <span className="text-[9px] font-mono text-slate-500 tracking-widest uppercase">
+                  <span className="text-sm font-mono text-slate-400 tracking-[0.25em] uppercase">
                     SPECTRUM REPORT
                   </span>
-                  <h3 id="artifact-title" className="text-base font-bold text-slate-200 neon-gold-glow">
+                  <h3 id="artifact-title" className="text-lg md:text-xl font-bold text-slate-200 neon-gold-glow">
                     {activeArt?.title || "未命名钱币"}
                   </h3>
                 </div>
               </div>
 
               {/* Document specifications grid */}
-              <div className="border border-white/10 rounded-xl overflow-hidden bg-black/30 text-xs font-sans">
+              <div className="border border-white/10 rounded-xl overflow-hidden bg-black/30 text-sm font-sans">
                 <div className="grid grid-cols-3 border-b border-white/5">
-                  <div className="bg-white/5 px-3 py-2 text-slate-400 border-r border-white/5 font-medium">
+                  <div className="bg-white/5 px-3 py-3 text-slate-400 border-r border-white/5 font-semibold text-sm">
                     历史年代
                   </div>
-                  <div id="spec-era" className="col-span-2 px-3 py-2 text-slate-200">
+                  <div id="spec-era" className="col-span-2 px-3 py-3 text-slate-200 text-sm">
                     {activeArt?.era || "-"}
                   </div>
                 </div>
                 <div className="grid grid-cols-3 border-b border-white/5">
-                  <div className="bg-white/5 px-3 py-2 text-slate-400 border-r border-white/5 font-medium">
+                  <div className="bg-white/5 px-3 py-3 text-slate-400 border-r border-white/5 font-semibold text-sm">
                     尺寸规格
                   </div>
-                  <div id="spec-size" className="col-span-2 px-3 py-2 text-slate-200 font-mono">
+                  <div id="spec-size" className="col-span-2 px-3 py-3 text-slate-200 font-mono text-sm">
                     {activeArt?.size || "-"}
                   </div>
                 </div>
                 <div className="grid grid-cols-3 border-b border-white/5">
-                  <div className="bg-white/5 px-3 py-2 text-slate-400 border-r border-white/5 font-medium">
+                  <div className="bg-white/5 px-3 py-3 text-slate-400 border-r border-white/5 font-semibold text-sm">
                     材质成分
                   </div>
-                  <div id="spec-material" className="col-span-2 px-3 py-2 text-slate-200">
+                  <div id="spec-material" className="col-span-2 px-3 py-3 text-slate-200 text-sm">
                     {activeArt?.material || "-"}
                   </div>
                 </div>
                 <div className="grid grid-cols-3 border-b border-white/5">
-                  <div className="bg-white/5 px-3 py-2 text-slate-400 border-r border-white/5 font-medium">
+                  <div className="bg-white/5 px-3 py-3 text-slate-400 border-r border-white/5 font-semibold text-sm">
                     工艺亮点
                   </div>
-                  <div id="spec-textures" className="col-span-2 px-3 py-2 text-slate-300 leading-relaxed text-[11px]">
+                  <div id="spec-textures" className="col-span-2 px-3 py-3 text-slate-300 leading-relaxed text-sm">
                     {activeArt?.textures || "-"}
                   </div>
                 </div>
                 <div className="grid grid-cols-3">
-                  <div className="bg-white/5 px-3 py-2 text-slate-400 border-r border-white/5 font-medium">
+                  <div className="bg-white/5 px-3 py-3 text-slate-400 border-r border-white/5 font-semibold text-sm">
                     传承意义
                   </div>
-                  <div id="spec-significance" className="col-span-2 px-3 py-2 text-slate-300 leading-relaxed text-[11px]">
+                  <div id="spec-significance" className="col-span-2 px-3 py-3 text-slate-300 leading-relaxed text-sm">
                     {activeArt?.description || "-"}
                   </div>
                 </div>
@@ -1511,27 +1497,27 @@ export default function App() {
                 </p>
               </div>
 
-              <div className={`overflow-hidden transition-all duration-500 ${gestureOpen ? "max-h-[300px] opacity-100 mt-4" : "max-h-0 opacity-0 mt-0"}`}>
+              <div className={`overflow-hidden transition-all duration-500 ${gestureOpen ? "max-h-[320px] opacity-100 mt-4" : "max-h-0 opacity-0 mt-0"}`}>
                 <div className="rounded-2xl border border-white/10 bg-[#04181f]/80 p-4 space-y-4">
-                  <div className="flex items-center justify-between text-[9px] uppercase tracking-[0.24em] text-slate-500">
+                  <div className="flex items-center justify-between text-sm uppercase tracking-[0.24em] text-slate-400">
                     <span>深度档案</span>
                     <span>{gestureOpen ? "展开中" : "已收起"}</span>
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-xl bg-white/5 p-3 text-[11px] text-slate-300">
-                      <div className="text-[10px] text-slate-500 uppercase tracking-widest">历史价值</div>
+                    <div className="rounded-xl bg-white/5 p-4 text-sm text-slate-300">
+                      <div className="text-[11px] text-slate-400 uppercase tracking-widest">历史价值</div>
                       <p className="mt-2 leading-relaxed text-slate-200">{activeArt?.description || "暂无补充说明。"}</p>
                     </div>
-                    <div className="rounded-xl bg-white/5 p-3 text-[11px] text-slate-300">
-                      <div className="text-[10px] text-slate-500 uppercase tracking-widest">收藏提示</div>
+                    <div className="rounded-xl bg-white/5 p-4 text-sm text-slate-300">
+                      <div className="text-[11px] text-slate-400 uppercase tracking-widest">收藏提示</div>
                       <p className="mt-2 leading-relaxed text-slate-200">适合置于暗光玻璃柜、现代展陈或私人雅集，体现古朴与光泽对比。</p>
                     </div>
-                    <div className="rounded-xl bg-white/5 p-3 text-[11px] text-slate-300">
-                      <div className="text-[10px] text-slate-500 uppercase tracking-widest">陈列焦点</div>
+                    <div className="rounded-xl bg-white/5 p-4 text-sm text-slate-300">
+                      <div className="text-[11px] text-slate-400 uppercase tracking-widest">陈列焦点</div>
                       <p className="mt-2 leading-relaxed text-slate-200">强调币面对称纹饰、主色金属与辅助冷色调的光影反差。</p>
                     </div>
-                    <div className="rounded-xl bg-white/5 p-3 text-[11px] text-slate-300">
-                      <div className="text-[10px] text-slate-500 uppercase tracking-widest">材质提示</div>
+                    <div className="rounded-xl bg-white/5 p-4 text-sm text-slate-300">
+                      <div className="text-[11px] text-slate-400 uppercase tracking-widest">材质提示</div>
                       <p className="mt-2 leading-relaxed text-slate-200">金属与铜绿形成天然古朴质感，保存时请避免强光与潮湿。</p>
                     </div>
                   </div>
