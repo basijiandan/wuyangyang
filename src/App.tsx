@@ -1316,9 +1316,7 @@ export default function App() {
       {/* Full-Screen WebGL Canvas Container */}
       <div
         ref={containerRef}
-        className={`absolute inset-0 z-0 w-full h-full transition-all duration-700 ${
-          activeView === "detail" ? "opacity-0 pointer-events-none" : "opacity-100"
-        }`}
+        className="absolute inset-0 z-0 w-full h-full transition-all duration-700"
         id="canvas-container"
       />
 
