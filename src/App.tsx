@@ -183,6 +183,10 @@ export default function App() {
     currentScale: number;
     glbModel: any;
     glbVertices: Float32Array | null;
+    ambientLight: any;
+    dirLight1: any;
+    dirLight2: any;
+    pointLight: any;
   } | null>(null);
 
   // MediaPipe Ref
@@ -847,7 +851,11 @@ export default function App() {
       targetScale: 1.0,
       currentScale: 1.0,
       glbModel: null,
-      glbVertices: null
+      glbVertices: null,
+      ambientLight,
+      dirLight1,
+      dirLight2,
+      pointLight
     };
 
     // 5. High intensity Raycaster Interaction click
@@ -1049,6 +1057,21 @@ export default function App() {
         t.transitionProgressUniform.value = progress;
       }
 
+      // Dynamic brightness adjustment based on view state
+      if (activeView === "detail") {
+        // Significantly reduce brightness for background coins in detail view
+        t.ambientLight.intensity = 0.08;
+        t.dirLight1.intensity = 0.3;
+        t.dirLight2.intensity = 0.15;
+        t.pointLight.intensity = 0.5;
+      } else {
+        // Restore original brightness in orbit view
+        t.ambientLight.intensity = 0.45;
+        t.dirLight1.intensity = 2.2;
+        t.dirLight2.intensity = 1.0;
+        t.pointLight.intensity = 3.2;
+      }
+
       // Smooth filters for palm gestures with lag damping
       t.currentRotationY += (t.targetRotationY - t.currentRotationY) * 0.06;
       t.currentScale += (t.targetScale - t.currentScale) * 0.08;
@@ -1120,6 +1143,9 @@ export default function App() {
           );
           const mappedScale = ((distance - 0.03) * (1.6 - 0.4)) / (0.25 - 0.03) + 0.4;
           t.targetScale = Math.max(0.4, Math.min(1.7, mappedScale));
+          
+          // Control gesture panel based on pinch distance: close hand opens panels
+          setGestureOpen(distance < 0.08);
 
           // OK gesture checker: pinch with index, and extend middle, ring, pinky
           const dThumbIndex = Math.sqrt(
@@ -1161,7 +1187,6 @@ export default function App() {
           // Under orbit wheel state: slide palm horizontally to roll orbit group
           const palmX = landmarks[9].x;
           t.orbitGroup.rotation.y += (palmX - 0.5) * 0.03;
-          setGestureOpen(false);
         }
       } else {
         setHandState("NO HAND");
@@ -1476,26 +1501,7 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Creative poetry prose block */}
-              <div className="relative bg-black/40 rounded-xl p-4 flex-grow min-h-[140px] max-h-[180px] flex items-center border border-white/5 overflow-y-auto">
-                {loadingNarration && (
-                  <div
-                    id="narration-loading"
-                    className="absolute inset-0 bg-black/95 flex flex-col items-center justify-center space-y-2 rounded-xl z-20"
-                  >
-                    <i className="fa-solid fa-compass-drafting fa-spin text-xs text-amber-500/80"></i>
-                    <span className="text-[9px] text-slate-500 tracking-widest font-mono">
-                      AI 时空织网中...
-                    </span>
-                  </div>
-                )}
-                <p
-                  id="artifact-narration"
-                  className="text-xs text-slate-300 leading-relaxed text-justify font-light whitespace-pre-line"
-                >
-                  {narration}
-                </p>
-              </div>
+
 
               <div className={`overflow-hidden transition-all duration-500 ${gestureOpen ? "max-h-[320px] opacity-100 mt-4" : "max-h-0 opacity-0 mt-0"}`}>
                 <div className="rounded-2xl border border-white/10 bg-[#04181f]/80 p-4 space-y-4">
