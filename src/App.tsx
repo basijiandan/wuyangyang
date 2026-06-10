@@ -147,13 +147,14 @@ export default function App() {
   const webcamRef = useRef<HTMLVideoElement>(null);
 
   // States
-  const [activeView, setActiveView] = useState<"orbit" | "interactive">("orbit");
+  const [activeView, setActiveView] = useState<"orbit" | "detail">("orbit");
   const [artifactsList, setArtifactsList] = useState<Artifact[]>(defaultArtifacts);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [narration, setNarration] = useState<string>("系统就绪。请触发选择以开启量子共鸣解说。");
   const [loadingNarration, setLoadingNarration] = useState<boolean>(false);
   const [isCameraActive, setIsCameraActive] = useState<boolean>(true);
   const [handState, setHandState] = useState<"NO HAND" | "ACTIVE">("NO HAND");
+  const [gestureOpen, setGestureOpen] = useState<boolean>(true);
   const [bloomStrength, setBloomStrength] = useState<number>(1.3);
   const [okPercentage, setOkPercentage] = useState<number>(0);
   const [isOkActive, setIsOkActive] = useState<boolean>(false);
@@ -632,8 +633,8 @@ export default function App() {
     // Render pass & bloom pass setup
     const renderScene = new THREE.RenderPass(scene, camera);
     const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(width, height), bloomStrength, 0.4, 0.85);
-    bloomPass.threshold = 0.05;
-    bloomPass.strength = bloomStrength;
+    bloomPass.threshold = 0.03;
+    bloomPass.strength = Math.max(1.8, bloomStrength);
     bloomPass.radius = 1.0;
 
     const composer = new THREE.EffectComposer(renderer);
@@ -641,18 +642,18 @@ export default function App() {
     composer.addPass(bloomPass);
 
     // Lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.25);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
     scene.add(ambientLight);
 
-    const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.5);
+    const dirLight1 = new THREE.DirectionalLight(0xffffff, 2.2);
     dirLight1.position.set(5, 10, 7);
     scene.add(dirLight1);
 
-    const dirLight2 = new THREE.DirectionalLight(0x00f2fe, 0.8);
+    const dirLight2 = new THREE.DirectionalLight(0x00f2fe, 1.0);
     dirLight2.position.set(-5, -5, -5);
     scene.add(dirLight2);
 
-    const pointLight = new THREE.PointLight(0xd4af37, 2, 15);
+    const pointLight = new THREE.PointLight(0xd4af37, 3.2, 18);
     pointLight.position.set(0, 2, 3);
     scene.add(pointLight);
 
@@ -700,7 +701,7 @@ export default function App() {
         bumpScale: 0.03,
         roughnessMap: bumpTex,
         emissive: art.metalColor,
-        emissiveIntensity: 0.12
+        emissiveIntensity: 0.22
       });
 
       const mesh = new THREE.Mesh(geom, mat);
@@ -897,6 +898,21 @@ export default function App() {
     };
   }, [artifactsList]);
 
+  useEffect(() => {
+    const loadHashSelection = () => {
+      const coinId = window.location.hash.slice(1);
+      if (!coinId) return;
+      const index = artifactsList.findIndex((artifact) => artifact.id === coinId);
+      if (index >= 0) {
+        triggerInteractiveModel(index);
+      }
+    };
+
+    loadHashSelection();
+    window.addEventListener("hashchange", loadHashSelection);
+    return () => window.removeEventListener("hashchange", loadHashSelection);
+  }, [artifactsList]);
+
   // Adjust Bloom Strengths
   useEffect(() => {
     if (threeRef.current && threeRef.current.bloomPass) {
@@ -907,7 +923,9 @@ export default function App() {
   // View state and animation loop
   const triggerInteractiveModel = (index: number) => {
     setCurrentIndex(index);
-    setActiveView("interactive");
+    setActiveView("detail");
+    window.history.replaceState(null, "", `#${artifactsList[index]?.id || ""}`);
+    setGestureOpen(true);
 
     const t = threeRef.current;
     if (!t) return;
@@ -970,6 +988,7 @@ export default function App() {
   const backToOrbitView = () => {
     setActiveView("orbit");
     setNarration("系统就绪。请触发选择以开启量子共鸣解说。");
+    window.history.replaceState(null, "", window.location.pathname + window.location.search);
 
     const t = threeRef.current;
     if (!t) return;
@@ -1020,7 +1039,7 @@ export default function App() {
       }
 
       // Transition points progress interpolator
-      if (activeView === "interactive" && t.isTransitioning) {
+      if (activeView === "detail" && t.isTransitioning) {
         const elapsed = now - t.transitionStartTime;
         let progress = elapsed / 1200; // transition duration is 1.2s
         if (progress >= 1.0) {
@@ -1034,7 +1053,7 @@ export default function App() {
       t.currentRotationY += (t.targetRotationY - t.currentRotationY) * 0.06;
       t.currentScale += (t.targetScale - t.currentScale) * 0.08;
 
-      if (activeView === "interactive" && t.particleSystem) {
+      if (activeView === "detail" && t.particleSystem) {
         t.particleSystem.rotation.y = t.currentRotationY;
 
         // Auto self-rotate when no hand is present
@@ -1088,7 +1107,7 @@ export default function App() {
           }
         }
 
-        if (activeView === "interactive") {
+        if (activeView === "detail") {
           // Rotation mapping
           const palmX = landmarks[9].x;
           t.targetRotationY = (palmX - 0.5) * Math.PI * 3.0;
@@ -1142,6 +1161,7 @@ export default function App() {
           // Under orbit wheel state: slide palm horizontally to roll orbit group
           const palmX = landmarks[9].x;
           t.orbitGroup.rotation.y += (palmX - 0.5) * 0.03;
+          setGestureOpen(false);
         }
       } else {
         setHandState("NO HAND");
@@ -1311,7 +1331,7 @@ export default function App() {
 
           {/* Controls & State Badges */}
           <div className="flex items-center space-x-4">
-            {activeView === "interactive" && (
+            {activeView === "detail" && (
               <button
                 id="back-to-orbit-btn"
                 onClick={backToOrbitView}
@@ -1344,21 +1364,21 @@ export default function App() {
 
         {/* Central interactive HUD panels */}
         <div
-          id="interactive-panel"
+          id="detail-panel"
           className={`transition-all duration-700 flex justify-between items-stretch flex-grow my-8 overflow-hidden w-full ${
-            activeView === "interactive" ? "opacity-100 translate-x-0" : "opacity-0 translate-x-12 pointer-events-none"
+            activeView === "detail" ? "opacity-100 translate-x-0" : "opacity-0 translate-x-12 pointer-events-none"
           }`}
         >
           {/* Left Panel: Hand gestural cockpit */}
-          <div className="w-80 bg-black/60 backdrop-blur-xl border border-[#00f2fe]/20 rounded-2xl p-5 flex flex-col justify-between pointer-events-auto shadow-2xl">
+          <div className={`w-80 bg-black/60 backdrop-blur-xl border border-[#00f2fe]/20 rounded-2xl p-5 flex flex-col justify-between pointer-events-auto shadow-2xl transition-all duration-700 ${gestureOpen ? "opacity-100 translate-x-0" : "opacity-60 -translate-x-5"}`}>
             <div className="flex flex-col h-full overflow-hidden justify-between space-y-4">
               <div>
                 <h2 className="text-xs font-bold text-[#d4af37] tracking-widest border-b border-white/10 pb-2 mb-3 flex items-center">
                   <i className="fa-solid fa-hands-holding mr-1 text-[#d4af37]"></i>
                   灵境手控调合
                 </h2>
-                <p className="text-xs text-slate-400 leading-relaxed font-light mb-4 text-justify">
-                  手势识别神经元已对接。请允许摄像头开启，通过物理肢体无形干涉、御控量子遗存。
+                <p className="text-xs text-slate-300 leading-relaxed font-medium mb-4 text-justify">
+                  简化手势：横移旋转、捏合缩放、OK保持1.5秒切换。张开手掌展开信息，捏合收起面板。
                 </p>
                 <img
                   src="/大吉羊花钱2.png"
@@ -1372,24 +1392,27 @@ export default function App() {
                 <div className="flex justify-between items-center border-b border-white/5 pb-2">
                   <span className="flex items-center">
                     <i className="fa-solid fa-arrows-left-right text-[#00f2fe] w-5"></i>
-                    手掌横向平移
+                    左右摆动
                   </span>
-                  <span className="text-slate-200">无极旋转</span>
+                  <span className="text-slate-200">旋转模型</span>
                 </div>
                 <div className="flex justify-between items-center border-b border-white/5 pb-2">
                   <span className="flex items-center">
                     <i className="fa-solid fa-compress-arrows-alt text-[#00f2fe] w-5"></i>
-                    拇食指捏张
+                    捏合缩放
                   </span>
-                  <span className="text-slate-200">平滑缩放</span>
+                  <span className="text-slate-200">调整视距</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="flex items-center">
                     <i className="fa-solid fa-circle-check text-[#d4af37] w-5"></i>
-                    OK 势保持1.5s
+                    OK 保持 1.5s
                   </span>
-                  <span className="text-[#d4af37] font-bold">时空轮替</span>
+                  <span className="text-[#d4af37] font-bold">切换下一枚</span>
                 </div>
+              </div>
+              <div className="text-[10px] text-slate-400 leading-snug px-1 pt-2">
+                当前手势：{gestureOpen ? "已展开详情，捏合收起" : "捏合展开详情"}
               </div>
 
               {/* Bloom adjuster slider */}
@@ -1410,7 +1433,7 @@ export default function App() {
           </div>
 
           {/* Right Panel: AI smart narration & historical specification ledger */}
-          <div className="w-96 bg-black/60 backdrop-blur-xl border border-[#00f2fe]/20 rounded-2xl p-5 flex flex-col justify-between pointer-events-auto overflow-hidden shadow-2xl">
+          <div className={`w-96 bg-black/60 backdrop-blur-xl border border-[#00f2fe]/20 rounded-2xl p-5 flex flex-col justify-between pointer-events-auto overflow-hidden shadow-2xl transition-all duration-700 ${gestureOpen ? "opacity-100 translate-x-0" : "opacity-60 translate-x-4"}`}>
             <div className="space-y-4 h-full flex flex-col justify-between">
               <div>
                 <div className="flex justify-between items-center border-b border-white/10 pb-2">
@@ -1449,12 +1472,20 @@ export default function App() {
                     {activeArt?.material || "-"}
                   </div>
                 </div>
-                <div className="grid grid-cols-3">
+                <div className="grid grid-cols-3 border-b border-white/5">
                   <div className="bg-white/5 px-3 py-2 text-slate-400 border-r border-white/5 font-medium">
-                    纹理图样
+                    工艺亮点
                   </div>
                   <div id="spec-textures" className="col-span-2 px-3 py-2 text-slate-300 leading-relaxed text-[11px]">
                     {activeArt?.textures || "-"}
+                  </div>
+                </div>
+                <div className="grid grid-cols-3">
+                  <div className="bg-white/5 px-3 py-2 text-slate-400 border-r border-white/5 font-medium">
+                    传承意义
+                  </div>
+                  <div id="spec-significance" className="col-span-2 px-3 py-2 text-slate-300 leading-relaxed text-[11px]">
+                    {activeArt?.description || "-"}
                   </div>
                 </div>
               </div>
@@ -1478,6 +1509,33 @@ export default function App() {
                 >
                   {narration}
                 </p>
+              </div>
+
+              <div className={`overflow-hidden transition-all duration-500 ${gestureOpen ? "max-h-[300px] opacity-100 mt-4" : "max-h-0 opacity-0 mt-0"}`}>
+                <div className="rounded-2xl border border-white/10 bg-[#04181f]/80 p-4 space-y-4">
+                  <div className="flex items-center justify-between text-[9px] uppercase tracking-[0.24em] text-slate-500">
+                    <span>深度档案</span>
+                    <span>{gestureOpen ? "展开中" : "已收起"}</span>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-xl bg-white/5 p-3 text-[11px] text-slate-300">
+                      <div className="text-[10px] text-slate-500 uppercase tracking-widest">历史价值</div>
+                      <p className="mt-2 leading-relaxed text-slate-200">{activeArt?.description || "暂无补充说明。"}</p>
+                    </div>
+                    <div className="rounded-xl bg-white/5 p-3 text-[11px] text-slate-300">
+                      <div className="text-[10px] text-slate-500 uppercase tracking-widest">收藏提示</div>
+                      <p className="mt-2 leading-relaxed text-slate-200">适合置于暗光玻璃柜、现代展陈或私人雅集，体现古朴与光泽对比。</p>
+                    </div>
+                    <div className="rounded-xl bg-white/5 p-3 text-[11px] text-slate-300">
+                      <div className="text-[10px] text-slate-500 uppercase tracking-widest">陈列焦点</div>
+                      <p className="mt-2 leading-relaxed text-slate-200">强调币面对称纹饰、主色金属与辅助冷色调的光影反差。</p>
+                    </div>
+                    <div className="rounded-xl bg-white/5 p-3 text-[11px] text-slate-300">
+                      <div className="text-[10px] text-slate-500 uppercase tracking-widest">材质提示</div>
+                      <p className="mt-2 leading-relaxed text-slate-200">金属与铜绿形成天然古朴质感，保存时请避免强光与潮湿。</p>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Custom local OBJ uploader */}
