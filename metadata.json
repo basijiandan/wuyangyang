@@ -1,0 +1,6 @@
+{
+  "name": "Cyber Archaeology",
+  "description": "中国历代羊主题货泉与钱币遗产粒子重构系统",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
