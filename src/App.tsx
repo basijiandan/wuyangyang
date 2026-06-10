@@ -1121,11 +1121,14 @@ export default function App() {
           const mappedScale = ((distance - 0.03) * (1.6 - 0.4)) / (0.25 - 0.03) + 0.4;
           t.targetScale = Math.max(0.4, Math.min(1.7, mappedScale));
 
+          if (distance < 0.07) {
+            setGestureOpen(true);
+          } else if (distance > 0.12) {
+            setGestureOpen(false);
+          }
+
           // OK gesture checker: pinch with index, and extend middle, ring, pinky
-          const dThumbIndex = Math.sqrt(
-            Math.pow(landmarks[4].x - landmarks[8].x, 2) +
-              Math.pow(landmarks[4].y - landmarks[8].y, 2)
-          );
+          const dThumbIndex = distance;
           const isPinching = dThumbIndex < 0.04;
           const middleExt = landmarks[12].y < landmarks[10].y;
           const ringExt = landmarks[16].y < landmarks[14].y;
@@ -1311,7 +1314,13 @@ export default function App() {
   return (
     <div className="relative w-full h-screen select-none overflow-hidden bg-[#000204]">
       {/* Full-Screen WebGL Canvas Container */}
-      <div ref={containerRef} className="absolute inset-0 z-0 w-full h-full" id="canvas-container" />
+      <div
+        ref={containerRef}
+        className={`absolute inset-0 z-0 w-full h-full transition-all duration-700 ${
+          activeView === "detail" ? "opacity-0 pointer-events-none" : "opacity-100"
+        }`}
+        id="canvas-container"
+      />
 
       {/* Top Overlay UI Layer */}
       <div
@@ -1365,12 +1374,12 @@ export default function App() {
         {/* Central interactive HUD panels */}
         <div
           id="detail-panel"
-          className={`transition-all duration-700 flex justify-between items-stretch flex-grow my-8 overflow-hidden w-full ${
+          className={`transition-all duration-700 flex flex-col lg:flex-row justify-between items-stretch flex-grow my-8 gap-4 overflow-hidden w-full ${
             activeView === "detail" ? "opacity-100 translate-x-0" : "opacity-0 translate-x-12 pointer-events-none"
           }`}
         >
           {/* Left Panel: Hand gestural cockpit */}
-          <div className={`w-80 bg-black/60 backdrop-blur-xl border border-[#00f2fe]/20 rounded-2xl p-5 flex flex-col justify-between pointer-events-auto shadow-2xl transition-all duration-700 ${gestureOpen ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-16"}`}>
+          <div className={`w-full lg:w-72 bg-black/60 backdrop-blur-xl border border-[#00f2fe]/20 rounded-2xl p-5 flex flex-col justify-between pointer-events-auto shadow-2xl transition-all duration-700 ${gestureOpen ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-16"}`}>
             <div className="flex flex-col h-full overflow-hidden justify-between space-y-4">
               <div>
                 <h2 className="text-sm font-bold text-[#d4af37] tracking-[0.24em] border-b border-white/10 pb-2 mb-3 flex items-center">
@@ -1419,7 +1428,7 @@ export default function App() {
           </div>
 
           {/* Right Panel: AI smart narration & historical specification ledger */}
-          <div className={`w-96 bg-black/60 backdrop-blur-xl border border-[#00f2fe]/20 rounded-2xl p-5 flex flex-col justify-between pointer-events-auto overflow-hidden shadow-2xl transition-all duration-700 ${gestureOpen ? "opacity-100 translate-x-0" : "opacity-0 translate-x-16"}`}>
+          <div className={`w-full lg:w-96 bg-black/60 backdrop-blur-xl border border-[#00f2fe]/20 rounded-2xl p-5 flex flex-col justify-between pointer-events-auto overflow-hidden shadow-2xl transition-all duration-700 ${gestureOpen ? "opacity-100 translate-x-0" : "opacity-0 translate-x-16"}`}>
             <div className="space-y-4 h-full flex flex-col justify-between">
               <div>
                 <div className="flex justify-between items-center border-b border-white/10 pb-2">
@@ -1474,27 +1483,6 @@ export default function App() {
                     {activeArt?.description || "-"}
                   </div>
                 </div>
-              </div>
-
-              {/* Creative poetry prose block */}
-              <div className="relative bg-black/40 rounded-xl p-4 flex-grow min-h-[140px] max-h-[180px] flex items-center border border-white/5 overflow-y-auto">
-                {loadingNarration && (
-                  <div
-                    id="narration-loading"
-                    className="absolute inset-0 bg-black/95 flex flex-col items-center justify-center space-y-2 rounded-xl z-20"
-                  >
-                    <i className="fa-solid fa-compass-drafting fa-spin text-xs text-amber-500/80"></i>
-                    <span className="text-[9px] text-slate-500 tracking-widest font-mono">
-                      AI 时空织网中...
-                    </span>
-                  </div>
-                )}
-                <p
-                  id="artifact-narration"
-                  className="text-xs text-slate-300 leading-relaxed text-justify font-light whitespace-pre-line"
-                >
-                  {narration}
-                </p>
               </div>
 
               <div className={`overflow-hidden transition-all duration-500 ${gestureOpen ? "max-h-[320px] opacity-100 mt-4" : "max-h-0 opacity-0 mt-0"}`}>
