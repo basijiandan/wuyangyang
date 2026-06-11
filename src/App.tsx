@@ -233,6 +233,7 @@ export default function App() {
   // MediaPipe Ref
   const cameraObjRef = useRef<any>(null);
   const modelCacheRef = useRef<Record<string, Float32Array>>({});
+  const gltfSceneCacheRef = useRef<Record<string, any>>({});
   const currentIndexRef = useRef<number>(0);
   currentIndexRef.current = currentIndex;
 
@@ -333,7 +334,11 @@ export default function App() {
     return paddedArray;
   };
 
-  const loadGLBParticleData = (url: string): Promise<Float32Array> => {
+  const loadGLTFScene = (url: string): Promise<any> => {
+    if (gltfSceneCacheRef.current[url]) {
+      return Promise.resolve(gltfSceneCacheRef.current[url]);
+    }
+
     return new Promise((resolve, reject) => {
       if (!THREE?.GLTFLoader) {
         reject(new Error("GLTFLoader 未加载"));
@@ -344,16 +349,36 @@ export default function App() {
       loader.load(
         url,
         (gltf: any) => {
-          try {
-            resolve(buildParticlePositionsFromScene(gltf.scene));
-          } catch (err) {
-            reject(err);
-          }
+          gltfSceneCacheRef.current[url] = gltf.scene;
+          resolve(gltf.scene);
         },
         undefined,
         (err: any) => reject(err)
       );
     });
+  };
+
+  const createDisplayModelFromScene = (sourceScene: any, targetSize = 2.4) => {
+    const model = sourceScene.clone(true);
+    const box = new THREE.Box3().setFromObject(model);
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
+    model.position.x -= center.x;
+    model.position.y -= center.y;
+    model.position.z -= center.z;
+    const maxDim = Math.max(size.x, size.y, size.z) || 1;
+    model.scale.setScalar(targetSize / maxDim);
+    return model;
+  };
+
+  const loadGLBParticleData = (url: string): Promise<Float32Array> => {
+    return loadGLTFScene(url).then((scene) => buildParticlePositionsFromScene(scene));
+  };
+
+  const setCoinModelVisible = (coinGroup: any, visible: boolean) => {
+    if (coinGroup?.userData?.modelMesh) {
+      coinGroup.userData.modelMesh.visible = visible;
+    }
   };
 
   // 1. Procedural High-Poly Coin Bump Texture Gen
@@ -842,27 +867,35 @@ export default function App() {
       coinGroup.position.z = Math.sin(angle) * radius;
       coinGroup.position.y = 0;
 
-      const geom = new THREE.CylinderGeometry(1.2, 1.2, 0.12, 48);
-
-      const bumpTex = createProceduralBumpMap(art, index);
-      const mat = new THREE.MeshStandardMaterial({
-        color: art.metalColor,
-        metalness: 0.95,
-        roughness: art.roughness,
-        bumpMap: bumpTex,
-        bumpScale: 0.03,
-        roughnessMap: bumpTex,
-        emissive: art.metalColor,
-        emissiveIntensity: 0.22
-      });
-
-      const mesh = new THREE.Mesh(geom, mat);
-      mesh.rotation.x = Math.PI / 2;
-      coinGroup.add(mesh);
-
-      coinGroup.userData = { index, art };
+      coinGroup.userData = { index, art, modelMesh: null };
       orbitCoins.push(coinGroup);
       orbitGroup.add(coinGroup);
+
+      if (art.modelPath && THREE?.GLTFLoader) {
+        loadGLTFScene(art.modelPath)
+          .then((scene) => {
+            const tNow = threeRef.current;
+            if (!tNow || tNow.orbitCoins[index]?.userData?.art?.id !== art.id) return;
+
+            const model = createDisplayModelFromScene(scene);
+            coinGroup.add(model);
+            coinGroup.userData.modelMesh = model;
+          })
+          .catch((err) => console.error(`Failed to load orbit model ${art.modelPath}:`, err));
+      } else {
+        const geom = new THREE.CylinderGeometry(1.2, 1.2, 0.12, 48);
+        const mat = new THREE.MeshStandardMaterial({
+          color: art.metalColor,
+          metalness: 0.95,
+          roughness: art.roughness,
+          emissive: art.metalColor,
+          emissiveIntensity: 0.22
+        });
+        const mesh = new THREE.Mesh(geom, mat);
+        mesh.rotation.x = Math.PI / 2;
+        coinGroup.add(mesh);
+        coinGroup.userData.modelMesh = mesh;
+      }
     });
 
     // Main Particle Engine setup
@@ -1096,22 +1129,13 @@ export default function App() {
     });
 
     t.particleSystem.position.copy(t.orbitCoins[index].position);
-    t.particleSystem.visible = true;
+    t.particleSystem.visible = false;
+    setCoinModelVisible(t.orbitCoins[index], true);
 
     const applyParticleTarget = (
       targetPositions: Float32Array,
-      sceneRef = t,
-      morphFromCurrent = false
+      sceneRef = t
     ) => {
-      if (morphFromCurrent && sceneRef.transitionProgressUniform.value >= 0.99) {
-        const currentTarget = sceneRef.particleGeometry.attributes.aTarget.array as Float32Array;
-        sceneRef.particleGeometry.setAttribute(
-          "aChaos",
-          new THREE.BufferAttribute(new Float32Array(currentTarget), 3)
-        );
-        sceneRef.particleGeometry.attributes.aChaos.needsUpdate = true;
-      }
-
       sceneRef.transitionProgressUniform.value = 0;
       sceneRef.isTransitioning = true;
       sceneRef.transitionStartTime = performance.now();
@@ -1122,25 +1146,29 @@ export default function App() {
       sceneRef.particleGeometry.attributes.aTarget.needsUpdate = true;
     };
 
-    if (activeArtifact.customData) {
-      applyParticleTarget(activeArtifact.customData);
-    } else if (modelCacheRef.current[activeArtifact.id]) {
-      applyParticleTarget(modelCacheRef.current[activeArtifact.id]);
-    } else if (activeArtifact.modelPath && THREE?.GLTFLoader) {
-      applyParticleTarget(generateProceduralModelPositions(activeArtifact.mathType));
+    const showParticleModel = (targetPositions: Float32Array, sceneRef = t, coinIndex = index) => {
+      setCoinModelVisible(sceneRef.orbitCoins[coinIndex], false);
+      sceneRef.particleSystem.visible = true;
+      applyParticleTarget(targetPositions, sceneRef);
+    };
 
+    if (activeArtifact.customData) {
+      showParticleModel(activeArtifact.customData);
+    } else if (modelCacheRef.current[activeArtifact.id]) {
+      showParticleModel(modelCacheRef.current[activeArtifact.id]);
+    } else if (activeArtifact.modelPath && THREE?.GLTFLoader) {
       loadGLBParticleData(activeArtifact.modelPath)
         .then((data) => {
           modelCacheRef.current[activeArtifact.id] = data;
           const tNow = threeRef.current;
           if (!tNow || artifactsList[currentIndexRef.current]?.id !== activeArtifact.id) return;
-          applyParticleTarget(data, tNow, true);
+          showParticleModel(data, tNow, currentIndexRef.current);
         })
         .catch((err) => {
           console.error(`Failed to load ${activeArtifact.modelPath}:`, err);
         });
     } else {
-      applyParticleTarget(generateProceduralModelPositions(activeArtifact.mathType));
+      showParticleModel(generateProceduralModelPositions(activeArtifact.mathType));
     }
 
     // Shift colors
@@ -1185,6 +1213,7 @@ export default function App() {
 
     t.orbitCoins.forEach((c) => {
       c.visible = true;
+      setCoinModelVisible(c, true);
     });
     t.particleSystem.visible = false;
 
@@ -1258,15 +1287,23 @@ export default function App() {
       t.currentRotationY += (t.targetRotationY - t.currentRotationY) * 0.06;
       t.currentScale += (t.targetScale - t.currentScale) * 0.08;
 
-      if (activeView === "detail" && t.particleSystem) {
-        t.particleSystem.rotation.y = t.currentRotationY;
+      if (activeView === "detail") {
+        const activeCoin = t.orbitCoins[currentIndexRef.current];
+        const rotationY = handState === "NO HAND" ? now * 0.00018 : t.currentRotationY;
 
-        // Auto self-rotate when no hand is present
+        if (activeCoin) {
+          activeCoin.rotation.y = rotationY;
+          activeCoin.scale.set(t.currentScale, t.currentScale, t.currentScale);
+        }
+
+        if (t.particleSystem.visible) {
+          t.particleSystem.rotation.y = rotationY;
+          t.particleSystem.scale.set(t.currentScale, t.currentScale, t.currentScale);
+        }
+
         if (handState === "NO HAND") {
-          t.particleSystem.rotation.y = now * 0.00018;
           t.targetScale = 1.0;
         }
-        t.particleSystem.scale.set(t.currentScale, t.currentScale, t.currentScale);
       }
 
       if (t.composer) {
