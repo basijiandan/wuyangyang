@@ -211,6 +211,7 @@ export default function App() {
     particleSystem: any;
     particleGeometry: any;
     orbitGroup: any;
+    orbitRing: any;
     orbitCoins: any[];
     timeUniform: { value: number };
     transitionProgressUniform: { value: number };
@@ -1018,6 +1019,7 @@ export default function App() {
       particleSystem,
       particleGeometry,
       orbitGroup,
+      orbitRing,
       orbitCoins,
       timeUniform,
       transitionProgressUniform,
@@ -1124,6 +1126,9 @@ export default function App() {
     getAISecureNarration(activeArtifact.title, activeArtifact.description);
 
     // Orbit visibility adjustment
+    if (t.orbitRing) {
+      t.orbitRing.visible = false;
+    }
     t.orbitCoins.forEach((c, idx) => {
       c.visible = idx === index;
     });
@@ -1211,6 +1216,9 @@ export default function App() {
     const t = threeRef.current;
     if (!t) return;
 
+    if (t.orbitRing) {
+      t.orbitRing.visible = true;
+    }
     t.orbitCoins.forEach((c) => {
       c.visible = true;
       setCoinModelVisible(c, true);
@@ -1546,10 +1554,10 @@ export default function App() {
         {/* Header Title Bar */}
         <header className="flex justify-between items-start pointer-events-auto w-full">
           <div className="flex flex-col space-y-1">
-            <h1 className="text-xl md:text-2xl font-black tracking-widest text-slate-100 font-serif">
+            <h1 className="text-xl md:text-2xl font-black tracking-widest text-[#7eb8a8] font-serif drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
               CYBER ARCHAEOLOGY · 羊币谱牒
             </h1>
-            <p className="text-[10px] text-slate-400 font-sans tracking-widest">
+            <p className="text-[10px] text-[#7eb8a8]/85 font-sans tracking-widest drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
               中国历代羊主题货泉与钱币遗产粒子重构系统
             </p>
           </div>
@@ -1598,8 +1606,8 @@ export default function App() {
           <div className={`w-80 p-2 flex flex-col justify-between pointer-events-auto transition-all duration-700 ${gestureOpen ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-16"}`}>
             <div className="flex flex-col h-full overflow-hidden justify-between space-y-4">
               <div>
-                <h2 className="text-xs font-bold text-[#d4af37] tracking-[0.24em] pb-2 mb-3 flex items-center drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
-                  <i className="fa-solid fa-hand-paper mr-2 text-[#d4af37]"></i>
+                <h2 className="text-xs font-bold text-[#7eb8a8] tracking-[0.24em] pb-2 mb-3 flex items-center drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
+                  <i className="fa-solid fa-hand-paper mr-2 text-[#7eb8a8]"></i>
                   手势简示
                 </h2>
                 <p className="text-xs text-slate-200 leading-relaxed font-medium mb-4 text-justify drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
@@ -1648,10 +1656,10 @@ export default function App() {
             <div className="space-y-3 h-full flex flex-col justify-between">
               <div>
                 <div className="flex justify-between items-center pb-2">
-                  <span className="text-xs font-mono text-slate-400 tracking-[0.25em] uppercase drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
+                  <span className="text-xs font-mono text-[#7eb8a8]/85 tracking-[0.25em] uppercase drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
                     SPECTRUM REPORT
                   </span>
-                  <h3 id="artifact-title" className="text-xs font-bold text-slate-200 neon-gold-glow drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
+                  <h3 id="artifact-title" className="text-xs font-bold text-[#7eb8a8] drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
                     {activeArt?.title || "未命名钱币"}
                   </h3>
                 </div>
