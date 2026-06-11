@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 
 // Declaring variables loaded from index.html scripts globally to keep TypeScript compiler happy.
 declare const THREE: any;
-declare const GLTFLoader: any;
 declare const Hands: any;
 declare const Camera: any;
 declare const drawConnectors: any;
@@ -179,7 +178,8 @@ const defaultArtifacts: Artifact[] = [
   }
 ];
 
-const PARTICLE_COUNT = 200000;
+const PARTICLE_COUNT = 80000;
+const GLB_BOUNDS_SAMPLE_STRIDE = 8;
 
 export default function App() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -240,6 +240,10 @@ export default function App() {
     const paddedArray = new Float32Array(PARTICLE_COUNT * 3);
     const vLen = vertices.length;
 
+    if (vLen < 3) {
+      throw new Error("无网格几何点数据");
+    }
+
     let minX = Infinity, maxX = -Infinity;
     let minY = Infinity, maxY = -Infinity;
     let minZ = Infinity, maxZ = -Infinity;
@@ -261,7 +265,7 @@ export default function App() {
 
     for (let i = 0; i < PARTICLE_COUNT; i++) {
       const i3 = i * 3;
-      const sourceIdx = i3 % vLen;
+      const sourceIdx = (Math.floor(Math.random() * (vLen / 3)) * 3) % vLen;
       paddedArray[i3] = (vertices[sourceIdx] - cx) * scaleFactor;
       paddedArray[i3 + 1] = (vertices[sourceIdx + 1] - cy) * scaleFactor + 0.2;
       paddedArray[i3 + 2] = (vertices[sourceIdx + 2] - cz) * scaleFactor;
@@ -270,35 +274,81 @@ export default function App() {
     return paddedArray;
   };
 
+  const buildParticlePositionsFromScene = (root: any) => {
+    const meshes: Array<{ positionAttr: any; matrix: any; count: number }> = [];
+    let totalVertices = 0;
+
+    root.updateMatrixWorld(true);
+    root.traverse((child: any) => {
+      if (!child.isMesh || !child.geometry?.attributes?.position) return;
+      const positionAttr = child.geometry.attributes.position;
+      meshes.push({ positionAttr, matrix: child.matrixWorld, count: positionAttr.count });
+      totalVertices += positionAttr.count;
+    });
+
+    if (totalVertices === 0) {
+      throw new Error("无网格几何点数据");
+    }
+
+    let minX = Infinity, maxX = -Infinity;
+    let minY = Infinity, maxY = -Infinity;
+    let minZ = Infinity, maxZ = -Infinity;
+    const point = new THREE.Vector3();
+
+    meshes.forEach(({ positionAttr, matrix, count }) => {
+      for (let i = 0; i < count; i += GLB_BOUNDS_SAMPLE_STRIDE) {
+        point.fromBufferAttribute(positionAttr, i).applyMatrix4(matrix);
+        minX = Math.min(minX, point.x);
+        maxX = Math.max(maxX, point.x);
+        minY = Math.min(minY, point.y);
+        maxY = Math.max(maxY, point.y);
+        minZ = Math.min(minZ, point.z);
+        maxZ = Math.max(maxZ, point.z);
+      }
+    });
+
+    const cx = (minX + maxX) / 2;
+    const cy = (minY + maxY) / 2;
+    const cz = (minZ + maxZ) / 2;
+    const maxDim = Math.max(maxX - minX, maxY - minY, maxZ - minZ) || 1.0;
+    const scaleFactor = 4.0 / maxDim;
+    const paddedArray = new Float32Array(PARTICLE_COUNT * 3);
+
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      let pick = Math.floor(Math.random() * totalVertices);
+      for (const mesh of meshes) {
+        if (pick < mesh.count) {
+          point.fromBufferAttribute(mesh.positionAttr, pick).applyMatrix4(mesh.matrix);
+          break;
+        }
+        pick -= mesh.count;
+      }
+
+      const i3 = i * 3;
+      paddedArray[i3] = (point.x - cx) * scaleFactor;
+      paddedArray[i3 + 1] = (point.y - cy) * scaleFactor + 0.2;
+      paddedArray[i3 + 2] = (point.z - cz) * scaleFactor;
+    }
+
+    return paddedArray;
+  };
+
   const loadGLBParticleData = (url: string): Promise<Float32Array> => {
     return new Promise((resolve, reject) => {
-      const loader = new GLTFLoader();
+      if (!THREE?.GLTFLoader) {
+        reject(new Error("GLTFLoader 未加载"));
+        return;
+      }
+
+      const loader = new THREE.GLTFLoader();
       loader.load(
         url,
         (gltf: any) => {
-          const vertices: number[] = [];
-          gltf.scene.updateMatrixWorld(true);
-          gltf.scene.traverse((child: any) => {
-            if (child.isMesh && child.geometry?.attributes?.position) {
-              const positionAttr = child.geometry.attributes.position;
-              for (let i = 0; i < positionAttr.count; i++) {
-                const vertex = new THREE.Vector3(
-                  positionAttr.getX(i),
-                  positionAttr.getY(i),
-                  positionAttr.getZ(i)
-                );
-                vertex.applyMatrix4(child.matrixWorld);
-                vertices.push(vertex.x, vertex.y, vertex.z);
-              }
-            }
-          });
-
-          if (vertices.length === 0) {
-            reject(new Error("无网格几何点数据"));
-            return;
+          try {
+            resolve(buildParticlePositionsFromScene(gltf.scene));
+          } catch (err) {
+            reject(err);
           }
-
-          resolve(buildParticlePositionsFromVertices(vertices));
         },
         undefined,
         (err: any) => reject(err)
@@ -863,7 +913,7 @@ export default function App() {
       uniforms: {
         uTime: timeUniform,
         uTransitionProgress: transitionProgressUniform,
-        uPointSize: { value: window.devicePixelRatio < 2 ? 0.8 : 0.5 }
+        uPointSize: { value: window.devicePixelRatio < 2 ? 1.0 : 0.7 }
       },
       vertexShader: `
         uniform float uTime;
@@ -903,7 +953,7 @@ export default function App() {
 
             vec4 mvPosition = modelViewMatrix * vec4(mixedPos + noise + ambientNoise, 1.0);
             gl_Position = projectionMatrix * mvPosition;
-            gl_PointSize = uPointSize * (18.0 / -mvPosition.z);
+            gl_PointSize = uPointSize * (22.0 / -mvPosition.z);
         }
       `,
       fragmentShader: `
@@ -1048,30 +1098,49 @@ export default function App() {
     t.particleSystem.position.copy(t.orbitCoins[index].position);
     t.particleSystem.visible = true;
 
-    const applyParticleTarget = (targetPositions: Float32Array, sceneRef = t) => {
+    const applyParticleTarget = (
+      targetPositions: Float32Array,
+      sceneRef = t,
+      morphFromCurrent = false
+    ) => {
+      if (morphFromCurrent && sceneRef.transitionProgressUniform.value >= 0.99) {
+        const currentTarget = sceneRef.particleGeometry.attributes.aTarget.array as Float32Array;
+        sceneRef.particleGeometry.setAttribute(
+          "aChaos",
+          new THREE.BufferAttribute(new Float32Array(currentTarget), 3)
+        );
+        sceneRef.particleGeometry.attributes.aChaos.needsUpdate = true;
+      }
+
+      sceneRef.transitionProgressUniform.value = 0;
       sceneRef.isTransitioning = true;
       sceneRef.transitionStartTime = performance.now();
-      sceneRef.particleGeometry.setAttribute("aTarget", new THREE.BufferAttribute(targetPositions, 3));
+      sceneRef.particleGeometry.setAttribute(
+        "aTarget",
+        new THREE.BufferAttribute(new Float32Array(targetPositions), 3)
+      );
       sceneRef.particleGeometry.attributes.aTarget.needsUpdate = true;
     };
 
-    const resolveTargetPositions = (): Float32Array => {
-      if (activeArtifact.customData) return activeArtifact.customData;
-      if (modelCacheRef.current[activeArtifact.id]) return modelCacheRef.current[activeArtifact.id];
-      return generateProceduralModelPositions(activeArtifact.mathType);
-    };
+    if (activeArtifact.customData) {
+      applyParticleTarget(activeArtifact.customData);
+    } else if (modelCacheRef.current[activeArtifact.id]) {
+      applyParticleTarget(modelCacheRef.current[activeArtifact.id]);
+    } else if (activeArtifact.modelPath && THREE?.GLTFLoader) {
+      applyParticleTarget(generateProceduralModelPositions(activeArtifact.mathType));
 
-    applyParticleTarget(resolveTargetPositions());
-
-    if (activeArtifact.modelPath && !modelCacheRef.current[activeArtifact.id] && !activeArtifact.customData) {
       loadGLBParticleData(activeArtifact.modelPath)
         .then((data) => {
           modelCacheRef.current[activeArtifact.id] = data;
           const tNow = threeRef.current;
           if (!tNow || artifactsList[currentIndexRef.current]?.id !== activeArtifact.id) return;
-          applyParticleTarget(data, tNow);
+          applyParticleTarget(data, tNow, true);
         })
-        .catch((err) => console.error(err));
+        .catch((err) => {
+          console.error(`Failed to load ${activeArtifact.modelPath}:`, err);
+        });
+    } else {
+      applyParticleTarget(generateProceduralModelPositions(activeArtifact.mathType));
     }
 
     // Shift colors
