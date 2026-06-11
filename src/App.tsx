@@ -832,7 +832,7 @@ export default function App() {
     dirLight1.position.set(5, 10, 7);
     scene.add(dirLight1);
 
-    const dirLight2 = new THREE.DirectionalLight(0x00f2fe, 1.0);
+    const dirLight2 = new THREE.DirectionalLight(0x70b4a8, 1.0);
     dirLight2.position.set(-5, -5, -5);
     scene.add(dirLight2);
 
@@ -1354,7 +1354,7 @@ export default function App() {
             canvas.height = webcam.videoHeight;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             drawConnectors(ctx, landmarks, HAND_CONNECTIONS, {
-              color: "rgba(0, 242, 254, 0.4)",
+              color: "rgba(112, 180, 168, 0.45)",
               lineWidth: 2
             });
             drawLandmarks(ctx, landmarks, { color: "#d4af37", radius: 2 });
@@ -1507,7 +1507,7 @@ export default function App() {
           color1: [0.0, 0.95, 1.0],
           color2: [1.0, 0.45, 0.0],
           mathType: "custom",
-          metalColor: 0x00f2fe,
+          metalColor: 0x9fded2,
           roughness: 0.15,
           customData: paddedArray
         };
@@ -1538,7 +1538,7 @@ export default function App() {
   return (
     <div className="relative w-full h-screen select-none overflow-hidden bg-[#000204]">
       {initError && (
-        <div className="absolute inset-x-0 top-20 z-30 mx-auto max-w-xl rounded-xl border border-red-500/40 bg-black/80 px-4 py-3 text-center text-sm text-red-200">
+        <div className="absolute inset-x-0 top-20 z-30 mx-auto max-w-xl rounded-xl border border-status-error/40 bg-bg-deep/80 backdrop-blur-sm px-4 py-3 text-center text-[10px] text-status-error text-glow-base">
           {initError}
         </div>
       )}
@@ -1554,10 +1554,10 @@ export default function App() {
         {/* Header Title Bar */}
         <header className="flex justify-between items-start pointer-events-auto w-full">
           <div className="flex flex-col space-y-1">
-            <h1 className="text-xl md:text-2xl font-black tracking-widest text-[#7eb8a8] font-serif drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
+            <h1 className="font-title text-xl md:text-2xl font-black tracking-widest text-celadon text-glow-shadow">
               CYBER ARCHAEOLOGY · 羊币谱牒
             </h1>
-            <p className="text-[10px] text-[#7eb8a8]/85 font-sans tracking-widest drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
+            <p className="text-[10px] text-celadon-muted font-serif tracking-widest text-glow-base">
               中国历代羊主题货泉与钱币遗产粒子重构系统
             </p>
           </div>
@@ -1568,25 +1568,25 @@ export default function App() {
               <button
                 id="back-to-orbit-btn"
                 onClick={backToOrbitView}
-                className="text-xs font-mono tracking-widest bg-[#d4af37]/10 border border-[#d4af37]/40 hover:border-[#d4af37] text-[#d4af37] px-4 py-2 rounded-lg transition-all duration-300 shadow-[0_0_15px_rgba(212,175,55,0.15)] pointer-events-auto cursor-pointer"
+                className="text-[10px] font-mono tracking-widest bg-gold/10 border border-gold/40 hover:border-gold text-gold text-glow-gold px-4 py-2 rounded-lg transition-all duration-300 pointer-events-auto cursor-pointer"
               >
                 <i className="fa-solid fa-rotate-left mr-1.5"></i> [ 返回星轨谱牒 / ROTARY GALLERY ]
               </button>
             )}
 
-            <div className="flex items-center space-x-3 text-[10px] font-mono text-slate-400 bg-black/60 px-4 py-2 rounded-xl border border-white/10">
+            <div className="flex items-center space-x-3 text-[10px] font-mono text-text-base/70 bg-transparent backdrop-blur-sm px-4 py-2 rounded-xl border border-celadon-muted/20 text-glow-base">
               <div className="flex items-center space-x-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-status-active animate-pulse"></span>
                 <span>60 FPS</span>
               </div>
               <div className="flex items-center space-x-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-status-active"></span>
                 <span>GEMINI PROXY ACTIVE</span>
               </div>
               <div className="flex items-center space-x-1.5">
                 <span
                   className={`w-1.5 h-1.5 rounded-full ${
-                    handState === "ACTIVE" ? "bg-emerald-500" : "bg-red-500"
+                    handState === "ACTIVE" ? "bg-status-active" : "bg-status-error"
                   }`}
                 ></span>
                 <span>{handState}</span>
@@ -1603,39 +1603,39 @@ export default function App() {
           }`}
         >
           {/* Left Panel: Hand gestural cockpit */}
-          <div className={`w-80 p-2 flex flex-col justify-between pointer-events-auto transition-all duration-700 ${gestureOpen ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-16"}`}>
+          <div id="panel-left" className={`panel-left w-80 p-2 flex flex-col justify-between pointer-events-auto transition-all duration-700 ${gestureOpen ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-16"}`}>
             <div className="flex flex-col h-full overflow-hidden justify-between space-y-4">
               <div>
-                <h2 className="text-xs font-bold text-[#7eb8a8] tracking-[0.24em] pb-2 mb-3 flex items-center drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
-                  <i className="fa-solid fa-hand-paper mr-2 text-[#7eb8a8]"></i>
+                <h2 className="font-title text-xs font-bold text-celadon tracking-[0.24em] pb-2 mb-3 flex items-center text-glow-shadow">
+                  <i className="fa-solid fa-hand-paper mr-2 text-celadon"></i>
                   手势简示
                 </h2>
-                <p className="text-xs text-slate-200 leading-relaxed font-medium mb-4 text-justify drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
+                <p className="text-xs text-text-base leading-relaxed font-medium mb-4 text-justify text-glow-base">
                   横移旋转、捏合缩放、OK停 1.5s 切换。张开展开信息框，捏合收起隐藏。
                 </p>
               </div>
 
-              <div className="space-y-3 text-xs text-slate-300">
-                <div className="flex items-center gap-3 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
-                  <i className="fa-solid fa-arrows-left-right text-[#00f2fe] w-4"></i>
+              <div className="space-y-3 text-xs text-text-base/90">
+                <div className="flex items-center gap-3 text-glow-base">
+                  <i className="fa-solid fa-arrows-left-right text-celadon-muted w-4"></i>
                   <span>左右滑动：旋转当前币体</span>
                 </div>
-                <div className="flex items-center gap-3 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
-                  <i className="fa-solid fa-compress-arrows-alt text-[#00f2fe] w-4"></i>
+                <div className="flex items-center gap-3 text-glow-base">
+                  <i className="fa-solid fa-compress-arrows-alt text-celadon-muted w-4"></i>
                   <span>捏合手势：放大 / 缩小视图</span>
                 </div>
-                <div className="flex items-center gap-3 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
-                  <i className="fa-solid fa-circle-check text-[#d4af37] w-4"></i>
+                <div className="flex items-center gap-3 text-glow-base">
+                  <i className="fa-solid fa-circle-check text-gold w-4"></i>
                   <span>OK 停留 1.5 秒：切换到下一枚</span>
                 </div>
               </div>
 
-              <div className="text-xs text-slate-300 leading-relaxed px-1 pt-2 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
+              <div className="text-xs text-text-base/80 leading-relaxed px-1 pt-2 text-glow-base">
                 当前状态：{gestureOpen ? "详情已展开" : "详情已隐藏"}
               </div>
 
               {/* Bloom adjuster slider */}
-              <div className="pt-3 flex justify-between items-center text-xs text-slate-400 font-mono drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
+              <div className="pt-3 flex justify-between items-center text-[10px] text-celadon-muted font-mono text-glow-base">
                 <span>BLOOM INTENSITY</span>
                 <input
                   id="bloom-strength-slider"
@@ -1645,55 +1645,55 @@ export default function App() {
                   step="0.1"
                   value={bloomStrength}
                   onChange={(e) => setBloomStrength(parseFloat(e.target.value))}
-                  className="w-24 accent-slate-300 h-1 rounded-lg pointer-events-auto cursor-pointer"
+                  className="w-24 accent-celadon h-1 rounded-lg pointer-events-auto cursor-pointer"
                 />
               </div>
             </div>
           </div>
 
           {/* Right Panel: AI smart narration & historical specification ledger */}
-          <div className={`w-96 p-2 flex flex-col justify-between pointer-events-auto overflow-hidden transition-all duration-700 ${gestureOpen ? "opacity-100 translate-x-0" : "opacity-0 translate-x-16"}`}>
+          <div id="panel-right" className={`panel-right w-96 p-2 flex flex-col justify-between pointer-events-auto overflow-hidden transition-all duration-700 ${gestureOpen ? "opacity-100 translate-x-0" : "opacity-0 translate-x-16"}`}>
             <div className="space-y-3 h-full flex flex-col justify-between">
               <div>
                 <div className="flex justify-between items-center pb-2">
-                  <span className="text-xs font-mono text-[#7eb8a8]/85 tracking-[0.25em] uppercase drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
+                  <span className="text-[10px] font-mono text-celadon-muted tracking-[0.25em] uppercase text-glow-base">
                     SPECTRUM REPORT
                   </span>
-                  <h3 id="artifact-title" className="text-xs font-bold text-[#7eb8a8] drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
+                  <h3 id="artifact-title" className="font-title text-xs font-bold text-celadon text-glow-shadow">
                     {activeArt?.title || "未命名钱币"}
                   </h3>
                 </div>
               </div>
 
               {/* Document specifications */}
-              <div className="space-y-2 text-xs font-sans">
+              <div className="space-y-2 text-xs">
                 <div className="grid grid-cols-3 gap-2">
-                  <div className="text-slate-400 font-semibold drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">历史年代</div>
-                  <div id="spec-era" className="col-span-2 text-slate-200 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
+                  <div className="text-celadon-muted font-semibold text-glow-base">历史年代</div>
+                  <div id="spec-era" className="col-span-2 text-text-base text-glow-base">
                     {activeArt?.era || "-"}
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
-                  <div className="text-slate-400 font-semibold drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">尺寸规格</div>
-                  <div id="spec-size" className="col-span-2 text-slate-200 font-mono drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
+                  <div className="text-celadon-muted font-semibold text-glow-base">尺寸规格</div>
+                  <div id="spec-size" className="col-span-2 text-text-base font-mono text-glow-base">
                     {activeArt?.size || "-"}
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
-                  <div className="text-slate-400 font-semibold drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">材质成分</div>
-                  <div id="spec-material" className="col-span-2 text-slate-200 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
+                  <div className="text-celadon-muted font-semibold text-glow-base">材质成分</div>
+                  <div id="spec-material" className="col-span-2 text-text-base text-glow-base">
                     {activeArt?.material || "-"}
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
-                  <div className="text-slate-400 font-semibold drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">工艺亮点</div>
-                  <div id="spec-textures" className="col-span-2 text-slate-300 leading-relaxed drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
+                  <div className="text-celadon-muted font-semibold text-glow-base">工艺亮点</div>
+                  <div id="spec-textures" className="col-span-2 text-text-base/90 leading-relaxed text-glow-base">
                     {activeArt?.textures || "-"}
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
-                  <div className="text-slate-400 font-semibold drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">传承意义</div>
-                  <div id="spec-significance" className="col-span-2 text-slate-300 leading-relaxed drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
+                  <div className="text-celadon-muted font-semibold text-glow-base">传承意义</div>
+                  <div id="spec-significance" className="col-span-2 text-text-base/90 leading-relaxed text-glow-base">
                     {activeArt?.description || "-"}
                   </div>
                 </div>
@@ -1701,7 +1701,7 @@ export default function App() {
 
               {/* Custom local OBJ uploader */}
               <div className="pt-2">
-                <label className="flex items-center justify-between text-xs text-slate-400 hover:text-white cursor-pointer transition drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
+                <label className="flex items-center justify-between text-[10px] text-celadon-muted hover:text-celadon cursor-pointer transition text-glow-base">
                   <span className="flex items-center">
                     <i className="fa-solid fa-folder-open mr-1.5"></i>
                     导入自定义 OBJ 模型
@@ -1713,7 +1713,7 @@ export default function App() {
                     onChange={handleFileUpload}
                     className="hidden"
                   />
-                  <span id="upload-label" className="text-[#00f2fe] font-mono">
+                  <span id="upload-label" className="text-gold font-mono text-glow-gold">
                     {customLoadStatus}
                   </span>
                 </label>
@@ -1728,11 +1728,11 @@ export default function App() {
             id="orbit-instructions"
             className="flex-grow flex flex-col items-center justify-center pointer-events-none select-none"
           >
-            <div className="text-center space-y-3 px-6 py-4 rounded-2xl bg-black/40 backdrop-blur-md border border-white/5 shadow-2xl animate-pulse">
-              <p className="text-xs text-[#d4af37] tracking-[0.35em] font-medium uppercase font-serif">
+            <div className="text-center space-y-3 px-6 py-4 bg-transparent text-glow-base">
+              <p className="font-title text-xs text-gold tracking-[0.35em] font-medium uppercase text-glow-gold">
                 点击轨道中的宏伟古币 · 开启赛博解构仪式
               </p>
-              <p className="text-[9px] text-slate-400 font-mono tracking-[0.15em]">
+              <p className="text-[9px] text-celadon-muted font-mono tracking-[0.15em]">
                 DRAG SPACE TO ROTATE · CLICK TO ARCHAEOLOGY
               </p>
             </div>
@@ -1740,15 +1740,15 @@ export default function App() {
         )}
 
         {/* Footer info line */}
-        <footer className="w-full flex justify-between items-end text-[9px] text-slate-600 font-mono tracking-widest">
+        <footer className="w-full flex justify-between items-end text-[9px] text-celadon-muted/70 font-mono tracking-widest text-glow-base">
           <span>CORE: THREE.JS + GLSL SHADER + MEDIAPIPE</span>
 
           {handState === "ACTIVE" && (
             <div
               id="gesture-banner"
-              className="flex items-center space-x-1.5 text-amber-500 bg-amber-500/5 px-3 py-1.5 rounded-full border border-amber-500/20"
+              className="flex items-center space-x-1.5 text-gold bg-gold/5 px-3 py-1.5 rounded-full border border-gold/20 text-glow-gold"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-gold animate-ping"></span>
               <span>手势交互映射中</span>
             </div>
           )}
@@ -1760,7 +1760,7 @@ export default function App() {
 
       {/* Floating webcam and bone skeleton recognition screen (Right-Bottom Corner) */}
       <div className="absolute bottom-6 right-6 z-20 pointer-events-auto flex flex-col items-end space-y-2">
-        <div className="relative w-44 h-32 rounded-xl border border-white/10 bg-black overflow-hidden shadow-2xl">
+        <div className="relative w-44 h-32 rounded-xl border border-celadon-muted/20 bg-bg-deep/40 backdrop-blur-sm overflow-hidden">
           <video
             ref={webcamRef}
             id="webcam"
@@ -1804,7 +1804,7 @@ export default function App() {
                     strokeDashoffset={163 - (okPercentage / 100) * 163}
                   />
                 </svg>
-                <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-amber-500 font-mono animate-pulse">
+                <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gold font-mono animate-pulse text-glow-gold">
                   OK
                 </div>
               </div>
@@ -1814,7 +1814,7 @@ export default function App() {
         <button
           onClick={() => setIsCameraActive((prev) => !prev)}
           id="toggle-camera-btn"
-          className="text-[9px] text-slate-500 hover:text-slate-300 font-mono tracking-wider cursor-pointer bg-transparent border-0"
+          className="text-[9px] text-celadon-muted hover:text-celadon font-mono tracking-wider cursor-pointer bg-transparent border-0 text-glow-base"
         >
           [ CAMERA {isCameraActive ? "OFF" : "ON"} ]
         </button>
