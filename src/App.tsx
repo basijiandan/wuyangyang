@@ -1644,88 +1644,59 @@ export default function App() {
           </div>
 
           {/* Right Panel: AI smart narration & historical specification ledger */}
-          <div className={`w-96 bg-black/60 backdrop-blur-xl border border-[#00f2fe]/20 rounded-2xl p-5 flex flex-col justify-between pointer-events-auto overflow-hidden shadow-2xl transition-all duration-700 ${gestureOpen ? "opacity-100 translate-x-0" : "opacity-0 translate-x-16"}`}>
-            <div className="space-y-4 h-full flex flex-col justify-between">
+          <div className={`w-96 bg-black/20 backdrop-blur-xl border border-[#00f2fe]/20 rounded-2xl p-4 flex flex-col justify-between pointer-events-auto overflow-hidden shadow-2xl transition-all duration-700 ${gestureOpen ? "opacity-100 translate-x-0" : "opacity-0 translate-x-16"}`}>
+            <div className="space-y-3 h-full flex flex-col justify-between">
               <div>
                 <div className="flex justify-between items-center border-b border-white/10 pb-2">
-                  <span className="text-sm font-mono text-slate-400 tracking-[0.25em] uppercase">
+                  <span className="text-xs font-mono text-slate-400 tracking-[0.25em] uppercase">
                     SPECTRUM REPORT
                   </span>
-                  <h3 id="artifact-title" className="text-lg md:text-xl font-bold text-slate-200 neon-gold-glow">
+                  <h3 id="artifact-title" className="text-base md:text-lg font-bold text-slate-200 neon-gold-glow">
                     {activeArt?.title || "未命名钱币"}
                   </h3>
                 </div>
               </div>
 
               {/* Document specifications grid */}
-              <div className="border border-white/10 rounded-xl overflow-hidden bg-black/30 text-sm font-sans">
+              <div className="border border-white/10 rounded-xl overflow-hidden text-xs font-sans">
                 <div className="grid grid-cols-3 border-b border-white/5">
-                  <div className="bg-white/5 px-3 py-3 text-slate-400 border-r border-white/5 font-semibold text-sm">
+                  <div className="px-3 py-2 text-slate-400 border-r border-white/5 font-semibold text-xs">
                     历史年代
                   </div>
-                  <div id="spec-era" className="col-span-2 px-3 py-3 text-slate-200 text-sm">
+                  <div id="spec-era" className="col-span-2 px-3 py-2 text-slate-200 text-xs">
                     {activeArt?.era || "-"}
                   </div>
                 </div>
                 <div className="grid grid-cols-3 border-b border-white/5">
-                  <div className="bg-white/5 px-3 py-3 text-slate-400 border-r border-white/5 font-semibold text-sm">
+                  <div className="px-3 py-2 text-slate-400 border-r border-white/5 font-semibold text-xs">
                     尺寸规格
                   </div>
-                  <div id="spec-size" className="col-span-2 px-3 py-3 text-slate-200 font-mono text-sm">
+                  <div id="spec-size" className="col-span-2 px-3 py-2 text-slate-200 font-mono text-xs">
                     {activeArt?.size || "-"}
                   </div>
                 </div>
                 <div className="grid grid-cols-3 border-b border-white/5">
-                  <div className="bg-white/5 px-3 py-3 text-slate-400 border-r border-white/5 font-semibold text-sm">
+                  <div className="px-3 py-2 text-slate-400 border-r border-white/5 font-semibold text-xs">
                     材质成分
                   </div>
-                  <div id="spec-material" className="col-span-2 px-3 py-3 text-slate-200 text-sm">
+                  <div id="spec-material" className="col-span-2 px-3 py-2 text-slate-200 text-xs">
                     {activeArt?.material || "-"}
                   </div>
                 </div>
                 <div className="grid grid-cols-3 border-b border-white/5">
-                  <div className="bg-white/5 px-3 py-3 text-slate-400 border-r border-white/5 font-semibold text-sm">
+                  <div className="px-3 py-2 text-slate-400 border-r border-white/5 font-semibold text-xs">
                     工艺亮点
                   </div>
-                  <div id="spec-textures" className="col-span-2 px-3 py-3 text-slate-300 leading-relaxed text-sm">
+                  <div id="spec-textures" className="col-span-2 px-3 py-2 text-slate-300 leading-relaxed text-xs">
                     {activeArt?.textures || "-"}
                   </div>
                 </div>
                 <div className="grid grid-cols-3">
-                  <div className="bg-white/5 px-3 py-3 text-slate-400 border-r border-white/5 font-semibold text-sm">
+                  <div className="px-3 py-2 text-slate-400 border-r border-white/5 font-semibold text-xs">
                     传承意义
                   </div>
-                  <div id="spec-significance" className="col-span-2 px-3 py-3 text-slate-300 leading-relaxed text-sm">
+                  <div id="spec-significance" className="col-span-2 px-3 py-2 text-slate-300 leading-relaxed text-xs">
                     {activeArt?.description || "-"}
-                  </div>
-                </div>
-              </div>
-
-
-
-              <div className={`overflow-hidden transition-all duration-500 ${gestureOpen ? "max-h-[320px] opacity-100 mt-4" : "max-h-0 opacity-0 mt-0"}`}>
-                <div className="rounded-2xl border border-white/10 bg-[#04181f]/80 p-4 space-y-4">
-                  <div className="flex items-center justify-between text-sm uppercase tracking-[0.24em] text-slate-400">
-                    <span>深度档案</span>
-                    <span>{gestureOpen ? "展开中" : "已收起"}</span>
-                  </div>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-xl bg-white/5 p-4 text-sm text-slate-300">
-                      <div className="text-[11px] text-slate-400 uppercase tracking-widest">历史价值</div>
-                      <p className="mt-2 leading-relaxed text-slate-200">{activeArt?.description || "暂无补充说明。"}</p>
-                    </div>
-                    <div className="rounded-xl bg-white/5 p-4 text-sm text-slate-300">
-                      <div className="text-[11px] text-slate-400 uppercase tracking-widest">收藏提示</div>
-                      <p className="mt-2 leading-relaxed text-slate-200">适合置于暗光玻璃柜、现代展陈或私人雅集，体现古朴与光泽对比。</p>
-                    </div>
-                    <div className="rounded-xl bg-white/5 p-4 text-sm text-slate-300">
-                      <div className="text-[11px] text-slate-400 uppercase tracking-widest">陈列焦点</div>
-                      <p className="mt-2 leading-relaxed text-slate-200">强调币面对称纹饰、主色金属与辅助冷色调的光影反差。</p>
-                    </div>
-                    <div className="rounded-xl bg-white/5 p-4 text-sm text-slate-300">
-                      <div className="text-[11px] text-slate-400 uppercase tracking-widest">材质提示</div>
-                      <p className="mt-2 leading-relaxed text-slate-200">金属与铜绿形成天然古朴质感，保存时请避免强光与潮湿。</p>
-                    </div>
                   </div>
                 </div>
               </div>
