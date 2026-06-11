@@ -199,6 +199,7 @@ export default function App() {
   const [okPercentage, setOkPercentage] = useState<number>(0);
   const [isOkActive, setIsOkActive] = useState<boolean>(false);
   const [customLoadStatus, setCustomLoadStatus] = useState<string>("点击上传");
+  const [initError, setInitError] = useState<string | null>(null);
 
   // Three.js State Refs to bridge reactivity and requestAnimationFrame
   const threeRef = useRef<{
@@ -694,10 +695,18 @@ export default function App() {
 
   // 4. Initialize Three.js Environment
   useEffect(() => {
-    if (!containerRef.current || !THREE) return;
+    if (!containerRef.current) return;
 
-    const width = containerRef.current.clientWidth;
-    const height = containerRef.current.clientHeight;
+    if (!THREE) {
+      setInitError("Three.js 未能加载，请检查网络连接后刷新页面。");
+      return;
+    }
+
+    setInitError(null);
+
+    const container = containerRef.current;
+    const width = container.clientWidth || window.innerWidth;
+    const height = container.clientHeight || window.innerHeight;
 
     const scene = new THREE.Scene();
     scene.fog = new THREE.FogExp2(0x000204, 0.05);
@@ -705,22 +714,39 @@ export default function App() {
     const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
     camera.position.set(0, 5, 20);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    let renderer: any;
+    try {
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    } catch (err) {
+      console.error(err);
+      setInitError("WebGL 初始化失败，请确认浏览器已开启硬件加速。");
+      return;
+    }
+
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setClearColor(0x000204, 1.0);
-    containerRef.current.appendChild(renderer.domElement);
+    container.appendChild(renderer.domElement);
 
-    // Render pass & bloom pass setup
-    const renderScene = new THREE.RenderPass(scene, camera);
-    const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(width, height), bloomStrength, 0.4, 0.85);
-    bloomPass.threshold = 0.03;
-    bloomPass.strength = Math.max(1.8, bloomStrength);
-    bloomPass.radius = 1.0;
+    // Render pass & bloom pass setup (fallback to direct render if postprocessing fails)
+    let composer: any = null;
+    let bloomPass: any = null;
 
-    const composer = new THREE.EffectComposer(renderer);
-    composer.addPass(renderScene);
-    composer.addPass(bloomPass);
+    if (THREE.EffectComposer && THREE.RenderPass && THREE.UnrealBloomPass) {
+      try {
+        const renderScene = new THREE.RenderPass(scene, camera);
+        bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(width, height), bloomStrength, 0.4, 0.85);
+        bloomPass.threshold = 0.03;
+        bloomPass.strength = Math.max(1.8, bloomStrength);
+        bloomPass.radius = 1.0;
+
+        composer = new THREE.EffectComposer(renderer);
+        composer.addPass(renderScene);
+        composer.addPass(bloomPass);
+      } catch (err) {
+        console.warn("Postprocessing unavailable, using direct renderer.", err);
+      }
+    }
 
     // Lights
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
@@ -962,7 +988,9 @@ export default function App() {
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
-      composer.setSize(w, h);
+      if (composer) {
+        composer.setSize(w, h);
+      }
     };
     window.addEventListener("resize", handleResize);
 
@@ -974,19 +1002,6 @@ export default function App() {
         containerRef.current.removeChild(renderer.domElement);
       }
     };
-  }, [artifactsList]);
-
-  useEffect(() => {
-    if (!THREE || !GLTFLoader) return;
-
-    artifactsList.forEach((art) => {
-      if (!art.modelPath || modelCacheRef.current[art.id]) return;
-      loadGLBParticleData(art.modelPath)
-        .then((data) => {
-          modelCacheRef.current[art.id] = data;
-        })
-        .catch((err) => console.error(`Failed to load ${art.modelPath}:`, err));
-    });
   }, [artifactsList]);
 
   useEffect(() => {
@@ -1185,7 +1200,11 @@ export default function App() {
         t.particleSystem.scale.set(t.currentScale, t.currentScale, t.currentScale);
       }
 
-      t.composer.render();
+      if (t.composer) {
+        t.composer.render();
+      } else {
+        t.renderer.render(t.scene, t.camera);
+      }
     };
 
     animId = requestAnimationFrame(loop);
@@ -1404,6 +1423,12 @@ export default function App() {
 
   return (
     <div className="relative w-full h-screen select-none overflow-hidden bg-[#000204]">
+      {initError && (
+        <div className="absolute inset-x-0 top-20 z-30 mx-auto max-w-xl rounded-xl border border-red-500/40 bg-black/80 px-4 py-3 text-center text-sm text-red-200">
+          {initError}
+        </div>
+      )}
+
       {/* Full-Screen WebGL Canvas Container */}
       <div ref={containerRef} className="absolute inset-0 z-0 w-full h-full" id="canvas-container" />
 
@@ -1415,7 +1440,7 @@ export default function App() {
         {/* Header Title Bar */}
         <header className="flex justify-between items-start pointer-events-auto w-full">
           <div className="flex flex-col space-y-1">
-            <h1 className="text-xl md:text-2xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-slate-100 via-[#d4af37] to-[#00f2fe] font-serif">
+            <h1 className="text-xl md:text-2xl font-black tracking-widest text-slate-100 font-serif">
               CYBER ARCHAEOLOGY · 羊币谱牒
             </h1>
             <p className="text-[10px] text-slate-400 font-sans tracking-widest">
